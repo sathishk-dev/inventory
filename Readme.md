@@ -62,7 +62,10 @@ CREATE TABLE users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
-### 5. Run the Backend
+### 5. Excel files
+Sample Excel data are stored in "backend/upload/" directory, Use it.
+
+### 6. Run the Backend
 After setting up the .env file and database, start the backend server:
 ```bash
 npm start
