@@ -8,8 +8,8 @@ This project contains both the frontend (React) and backend (Node.js + Express) 
 
 ### 1. Clone the repository:
 ```bash
-git clone <repository_url>
-cd <repository_folder>
+git clone https://github.com/sathishk-dev/inventory.git
+cd backend
 ```
 ### 2. Install dependencies:
 ```bash
