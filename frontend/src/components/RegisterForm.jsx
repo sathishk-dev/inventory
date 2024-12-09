@@ -24,7 +24,11 @@ export default function RegisterForm() {
             navigate("/");
         } 
         catch (err) {
-            setMessage("Registration failed");
+            if (err.response && err.response.data) {
+                setMessage(err.response.data.message || "Registration failed");
+            } else {
+                setMessage("Registration failed");
+            }
         }
     }
 
