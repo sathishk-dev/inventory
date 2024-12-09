@@ -1,24 +1,32 @@
 import axios from 'axios';
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+// import { startAuthentication } from "@simplewebauthn/browser";
 
 export default function LoginForm() {
-    const [email,setEmail] = useState('');
-    const [password,setPassword] = useState('');
-    const [message,setMessage] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [message, setMessage] = useState('');
 
     const navigate = useNavigate();
 
-    const handleLogin = async(e)=>{
+
+
+    const handleLogin = async (e) => {
         e.preventDefault();
 
-        try{
-            const {data} = await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/auth/login`, { email, password });
+        try {
+            const { data } = await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/auth/login`, { email, password });
             localStorage.setItem("token", data.token);
-            localStorage.setItem("isLoggedIn",true);
-            navigate("/home");
+            localStorage.setItem("isLoggedIn", true);
+            localStorage.setItem("userDetails", JSON.stringify({
+                userId: data.userId,
+                userEmail: data.userEmail,
+            }));
+
+            navigate('/home')
         }
-        catch(err){
+        catch (err) {
             if (err.response && err.response.status === 401) {
                 setMessage(err.response.data.message);
             } else {
@@ -26,6 +34,7 @@ export default function LoginForm() {
             }
         }
     }
+    
 
     return (
         <div>
@@ -42,7 +51,7 @@ export default function LoginForm() {
                             </label>
                             <input
                                 className="border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="email" type="email" placeholder="Enter your email address" onChange={(e)=> setEmail(e.target.value)} required/>
+                                id="email" type="email" placeholder="Enter your email address" onChange={(e) => setEmail(e.target.value)} required />
                         </div>
                         <div className="mb-4">
                             <label className="block font-semibold text-gray-700 mb-2" htmlFor="password">
@@ -50,7 +59,7 @@ export default function LoginForm() {
                             </label>
                             <input
                                 className="border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                                id="password" type="password" placeholder="Enter your password" onChange={(e)=> setPassword(e.target.value)} required/>
+                                id="password" type="password" placeholder="Enter your password" onChange={(e) => setPassword(e.target.value)} required />
                         </div>
                         <div>
                             {message && (

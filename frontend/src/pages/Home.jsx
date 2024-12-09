@@ -4,23 +4,29 @@ import axios from "axios";
 
 export default function Home() {
     const [inventory, setInventory] = useState([]); //for store the data
+    const [columns, setColumns] = useState([]);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedFile, setSelectedFile] = useState(null);
 
     //inventory data fetch
     useEffect(() => {
-        const fetchInventory = async () => {
+        const fetchData = async () => {
             try {
                 const { data } = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/inventory/getInventory`);
-                console.log(data);
-                setInventory(data)
-            } catch (error) {
-                console.error("Error fetching inventory:", error.message);
+
+                if (data.length > 0) {
+                    setColumns(Object.keys(data[0]));
+                    setInventory(data);
+                }
+            } catch (err) {
+                console.log("Error", err.response.data.message);
             }
         };
-        fetchInventory();
+
+        fetchData();
     }, [selectedFile]);
+
 
 
 
@@ -60,13 +66,13 @@ export default function Home() {
     };
 
     //clear inventory data
-    const clearInventoryData = ()=>{
+    const clearInventoryData = () => {
         const confirmClearData = window.confirm("Are you sure want to clear?");
         if (confirmClearData) {
             setInventory([]);
             axios.delete(`${process.env.REACT_APP_SERVER_URL}/api/inventory/clear`);
         }
-        
+
     }
 
     //pagination logic
@@ -113,66 +119,83 @@ export default function Home() {
                             </button>
                         </div>
                     </div>
-                    <div>
-                        <button
-                            onClick={clearInventoryData}
-                            className="md:px-4 md:py-2 p-2 mb-3 md:m-0 text-xs md:text-base bg-red-600 text-white rounded-md hover:bg-red-700"
-                        >
-                            Clear Data
-                        </button>
-                    </div>
+                    {
+                        inventory.length !== 0 && (
+                            <div>
+                                <button
+                                    onClick={clearInventoryData}
+                                    className="md:px-4 md:py-2 p-2 mb-3 md:m-0 text-xs md:text-base bg-red-600 text-white rounded-md hover:bg-red-700"
+                                >
+                                    Clear Data
+                                </button>
+                            </div>
+
+                        )
+                    }
+
                 </div>
 
-                <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-                    <table className="min-w-full text-sm text-left">
-                        <thead className="bg-indigo-600 text-white">
-                            <tr>
-                                <th className="px-4 py-2">ID</th>
-                                <th className="px-4 py-2">Name</th>
-                                <th className="px-4 py-2">Quantity</th>
-                                <th className="px-4 py-2">Price</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentItems.length > 0 ? (
-                                currentItems.map((item, index) => (
-                                    <tr key={index} className="hover:bg-gray-100">
-                                        <td className="px-4 py-2">{item.id}</td>
-                                        <td className="px-4 py-2">{item.name}</td>
-                                        <td className="px-4 py-2">{item.quantity}</td>
-                                        <td className="px-4 py-2">${item.price}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="4" className="text-center px-4 py-2 text-gray-500">
-                                        No data available
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                {
+                    inventory.length !== 0 && (
+                        <div>
+                            <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+                                <table className="min-w-full text-sm text-left">
+                                    <thead className="bg-indigo-600 text-white">
+                                        <tr>
+                                            {columns.map((col, index) => (
+                                                <th key={index} className="px-4 py-2 capitalize">{col}</th>
+                                            ))}
+                                        </tr>
 
-                <div className="flex justify-between items-center mt-4">
-                    <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <span className="text-sm text-gray-600">
-                        Page {currentPage} of {totalPages}
-                    </span>
-                    <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
+                                    </thead>
+                                    <tbody>
+                                        {currentItems.length > 0 ? (
+                                            currentItems.map((item, index) => (
+                                                <tr key={index} className="hover:bg-gray-100">
+                                                    {
+                                                        columns.map((col,index)=>(
+                                                            <td key={index} className="px-4 py-2">{item[col]}</td>
+                                                        ))
+                                                    }
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="4" className="text-center px-4 py-2 text-gray-500">
+                                                    No data available
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="flex justify-between items-center mt-4">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <span className="text-sm text-gray-600">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )
+
+                }
+
+
+
             </div>
         </div>
     );
