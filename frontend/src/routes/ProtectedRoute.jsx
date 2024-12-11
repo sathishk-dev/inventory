@@ -4,6 +4,7 @@ import axios from "axios";
 
 export default function ProtectedRoute({ children }) {
     const [isValid, setIsValid] = useState(null);
+    const isWebAuth = localStorage.getItem('webAuth');
 
     useEffect(() => {
         const validateToken = async () => {
@@ -33,7 +34,7 @@ export default function ProtectedRoute({ children }) {
         return <div>Loading...</div>;
     }
 
-    if (!isValid) {
+    if (!isValid || !isWebAuth ) {
         return <Navigate to="/" replace />;
     }
 

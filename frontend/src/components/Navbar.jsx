@@ -9,6 +9,7 @@ export default function Navbar() {
         if (confirmLogout) {
             localStorage.removeItem("token");
             localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("webAuth");
 
             navigate("/");
         }

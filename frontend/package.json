@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@simplewebauthn/browser": "^13.0.0",
+    "@simplewebauthn/browser": "^10.0.0",
     "axios": "^1.7.9",
     "cra-template": "1.2.0",
     "react": "^19.0.0",

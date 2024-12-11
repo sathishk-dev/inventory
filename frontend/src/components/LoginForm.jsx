@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-// import { startAuthentication } from "@simplewebauthn/browser";
+import { startAuthentication, startRegistration } from "@simplewebauthn/browser"
 
 export default function LoginForm() {
     const [email, setEmail] = useState('');
@@ -19,22 +19,108 @@ export default function LoginForm() {
             const { data } = await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/auth/login`, { email, password });
             localStorage.setItem("token", data.token);
             localStorage.setItem("isLoggedIn", true);
-            localStorage.setItem("userDetails", JSON.stringify({
-                userId: data.userId,
-                userEmail: data.userEmail,
-            }));
 
-            navigate('/home')
+
+            // navigate('/home')
+            const isWebAuthReg = await registerPassKey();
+            if (isWebAuthReg) {
+                const isWebAuthLog = await loginPassKey();
+                if (isWebAuthLog) {
+                    console.log("successfully project completed")
+                    localStorage.setItem('webAuth', true)
+                    navigate('/home')
+                }
+            }
         }
         catch (err) {
             if (err.response && err.response.status === 401) {
                 setMessage(err.response.data.message);
             } else {
                 setMessage("Something went wrong. Please try again.");
+                console.log(err)
             }
         }
     }
-    
+
+    async function registerPassKey() {
+        const email = localStorage.getItem('userEmail')
+        if (!email) {
+            alert("No email found")
+        }
+
+        const initResponse = await fetch(
+            `${process.env.REACT_APP_SERVER_URL}/api/webauthn/init-register?email=${email}`,
+            { credentials: "include" }
+        )
+        const options = await initResponse.json()
+        if(options.isAlredyReg){
+            return true
+        }
+        if (!initResponse.ok) {
+            console.log(options.error)
+        }
+
+        //passkey
+        const registrationJSON = await startRegistration(options)
+
+        const verifyResponse = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/webauthn/verify-register`, {
+            credentials: "include",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(registrationJSON),
+        })
+
+        const verifyData = await verifyResponse.json()
+        if (!verifyResponse.ok) {
+            console.log(verifyData.error)
+        }
+        if (verifyData.verified) {
+            console.log(`Successfully registered ${email}`)
+            return true
+        } else {
+            console.log("Failed to register")
+        }
+    }
+
+    async function loginPassKey() {
+        const email = localStorage.getItem('userEmail')
+
+        const initResponse = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/webauthn/init-auth?email=${email}`, {
+            credentials: "include",
+        })
+        const options = await initResponse.json()
+        console.log('weblog: ', options)
+        if (!initResponse.ok) {
+            console.log(options.error)
+        }
+
+        //get passkey
+        const authJSON = await startAuthentication(options)
+
+        //verify passkey
+        const verifyResponse = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/webauthn/verify-auth`, {
+            credentials: "include",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(authJSON),
+        })
+
+        const verifyData = await verifyResponse.json()
+        if (!verifyResponse.ok) {
+            console.log(verifyData.error)
+        }
+        if (verifyData.verified) {
+            console.log(`Successfully Loggged in ${email}`)
+            return true
+        } else {
+            console.log("Failed to loggin")
+        }
+    }
+
 
     return (
         <div>

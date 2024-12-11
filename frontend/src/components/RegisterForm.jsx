@@ -21,6 +21,7 @@ export default function RegisterForm() {
         try {
             const { data } = await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/auth/register`, { email, password });
             alert(data.message);
+            localStorage.setItem("userEmail", data.userEmail);
             navigate("/");
         } 
         catch (err) {
