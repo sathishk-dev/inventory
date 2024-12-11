@@ -53,6 +53,9 @@ CREATE TABLE inventory (
     price DECIMAL(10, 2) NOT NULL
 );
 ```
+
+Note: Table column dynamically change based on the excel data
+
 ### Create User Table
 ```bash
 CREATE TABLE users (
@@ -62,6 +65,24 @@ CREATE TABLE users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
+### create webauthn table
+```bash
+CREATE TABLE webauthn_credentials (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    key_id VARCHAR(255) NOT NULL,
+    public_key VARCHAR(1024) NOT NULL,
+    counter INT NOT NULL,
+    device_type VARCHAR(50),
+    backed_up BOOLEAN NOT NULL,
+    transport JSON DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+```
+
+
 ### 5. Excel files
 Sample Excel data are stored in "backend/upload/" directory, Use it.
 

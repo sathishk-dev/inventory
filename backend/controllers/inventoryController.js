@@ -1,7 +1,8 @@
 const multer = require("multer");
 const xlsx = require("xlsx");
 const path = require("path");
-const db = require('../config/db')
+const db = require('../config/db');
+const util = require('util');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -27,23 +28,62 @@ const uploadInventory = async (req, res) => {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = xlsx.utils.sheet_to_json(sheet);
 
-        // insert data to db
-        const insertQueries = data.map(item => {
-            return db.query(
-                'INSERT IGNORE INTO inventory (id, name, quantity, price) VALUES (?, ?, ?, ?)',
-                [item.ID, item.Name, item.Quantity, item.Price]
-            );
+        if (!data || data.length === 0) {
+            return res.status(400).json({ message: "file is empty" });
+        }
+
+        const transformedData = data.map(row => {
+            const transformedRow = {};
+            for (const key in row) {
+                transformedRow[key.toLowerCase()] = row[key];
+            }
+            return transformedRow;
         });
 
-        await Promise.all(insertQueries);
+        const columnNames = Object.keys(transformedData[0]);
+        const query = util.promisify(db.query).bind(db);
 
-        res.json({ message: "successfully stored" });
-    }
-    catch (error) {
-        console.error("Error uploading file:", error);
-        res.status(500).json({ message: "Failed to process file" });
+        let columns;
+        try {
+            columns = await query('SHOW COLUMNS FROM inventory');
+        } 
+        catch (err) {
+            return res.status(500).json({ message: "Error fetch columns from db" });
+        }
+
+        const existColumn = columns.map(col => col.Field);
+
+        for (const columnName of columnNames) {
+            if (!existColumn.includes(columnName)) {
+                const alterQuery = `ALTER TABLE inventory ADD COLUMN \`${columnName}\` VARCHAR(255)`;
+                await query(alterQuery);
+            }
+        }
+
+        for (const item of transformedData) {
+
+            const columns = columnNames.join(",");
+            const placeholders = columnNames.map(() => "?").join(",");
+            const values = columnNames.map(col => item[col]);
+
+            // console.log(columns,placeholders,values)
+
+            const insertQuery = `
+                INSERT INTO inventory (${columns}) 
+                VALUES (${placeholders}) 
+                ON DUPLICATE KEY UPDATE ${columnNames.map(col => `\`${col}\` = VALUES(\`${col}\`)`).join(", ")}
+            `;
+
+            await query(insertQuery, values);
+        }
+
+        res.json({ message: "Successfully stored " });
+    } catch (err) {
+        console.error("Error uploading file:", err);
+        res.status(500).json({ message: "Error uploading file:" });
     }
 };
+
 
 
 const getInventory = (req, res) => {

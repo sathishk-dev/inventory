@@ -1,14 +1,17 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const cookieParser = require('cookie-parser');
 const db = require("./config/db");
 const authRoutes = require('./routes/authRoutes')
 const inventoryRoutes = require('./routes/inventoryRoutes')
+const webAuthRoutes = require('./routes/webAuthRoutes')
 
 dotenv.config();
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 db.connect((err)=>{
@@ -23,6 +26,7 @@ db.connect((err)=>{
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/webauthn", webAuthRoutes);
 app.use("/api/inventory", inventoryRoutes);
 
 

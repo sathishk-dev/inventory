@@ -20,7 +20,7 @@ const registerUser = async (req, res) => {
 
             db.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, hashPassword], (err) => {
                 if (err) return res.status(500).json({ message: "Database error" });
-                res.status(201).json({ message: "Registered successfully" });
+                res.status(201).json({ message: "Registered successfully" , userEmail:email });
             });
         });
     } 
@@ -46,7 +46,7 @@ const loginUser = (req, res) => {
         }
 
         const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
-        res.json({ token });
+        res.json({ token});
     });
 };
 
