@@ -18,14 +18,15 @@ npm install
 
 ### 3. Create a .env file:
 ```bash
-DB_HOST=localhost
-DB_USER=root
-DB_PASS=
-DB_NAME=inventory
+DB_HOST = localhost
+DB_USER = root
+DB_PASS =
+DB_NAME = inventory
 
-PORT=3001
+PORT = 3001
 
-JWT_SECRET="jwt-secret-key"
+JWT_SECRET = "jwt-secret-key"
+CLIENT_URL = 'http://localhost:3000'
 ```
 # Environment Variables
 
